@@ -13,4 +13,13 @@ class CustomControl: UIControl {
     var value: Int = 1
     let labels: [UILabel] = []
     
+    private let componentDimension: CGFloat = 40.0
+    private let componentCount = 5
+    private let componenetActiveColor = UIColor.black
+    private let compenentInactiveColor = UIColor.gray
+    
+    
+    
+    
+    
 }
