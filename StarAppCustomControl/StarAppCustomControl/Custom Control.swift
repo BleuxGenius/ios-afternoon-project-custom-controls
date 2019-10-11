@@ -10,8 +10,8 @@ import UIKit
 
 class CustomControl: UIControl {
     
-    var value: Int = 1
-    var labels: [UILabel] = []
+    var value: Int = 1 { didSet { updateLabels() } }
+    var stars: [UILabel] = []
     
     private let componentDimension: CGFloat = 40.0
     private let componentCount = 5
@@ -28,26 +28,24 @@ class CustomControl: UIControl {
     
     func setUp() {
         
-//         use a loop to create 5 labels
+        //use a loop to create 5 labels
         for i in 1...componentCount {
-//            creating the label
-            let label = UILabel()
-            label.tag = i
-            addSubview(label)
+            //creating the label
+            let star = UILabel()
+            star.tag = i
+            addSubview(star)
 //            turn off the autolayout
-            label.translatesAutoresizingMaskIntoConstraints = false
+            star.translatesAutoresizingMaskIntoConstraints = false
 //            constrain the label
-            label.heightAnchor.constraint(equalToConstant: componentDimension).isActive = true
-            label.widthAnchor.constraint(equalToConstant: componentDimension).isActive = true
-            let offset = (40 * (i - 1)) + (8 * 1)
-            label.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: CGFloat(offset)).isActive = true
-//
-            label.font = .boldSystemFont(ofSize: 32)
-            label.text = "★"
-            label.textAlignment = .center
-            label.textColor = i > value ? componentInactiveColor : componentActiveColor
-            labels.append(label)
-            
+            star.heightAnchor.constraint(equalToConstant: componentDimension).isActive = true
+            star.widthAnchor.constraint(equalToConstant: componentDimension).isActive = true
+            let offset = (40 * (i + 1)) + (8 * 1)
+            star.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: CGFloat(offset)).isActive = true
+            star.font = .boldSystemFont(ofSize: 32)
+            star.text = "★"
+            star.textAlignment = .center
+            star.textColor = i > value ? componentInactiveColor : componentActiveColor
+            stars.append(star)
         }
         
     }
@@ -61,9 +59,53 @@ class CustomControl: UIControl {
         return CGSize(width: width, height: componentDimension)
     }
     
+//    MARK: - Touch Methods
+    
+    override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+        updateValue(at: touch)
+        return true
+    }
+    
+    override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+        let touchPoint = touch.location(in: self)
+        if bounds.contains(touchPoint) {
+            updateValue(at: touch)
+            sendActions(for: [.touchDragInside, .valueChanged])
+        } else {
+            sendActions(for: .touchDragInside)
+        }
+        return true
+    }
+    
+    override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
+        super.endTracking(touch, with: event)
+        
+        guard let touch = touch else {return}
+        let touchPoint = touch.location(in: self)
+        if bounds.contains(touchPoint) {
+            sendActions(for: [.touchDragOutside, .valueChanged])
+        } else {
+            sendActions(for: [.touchDragOutside])
+        }
+    }
+    
+    override func cancelTracking(with event: UIEvent?) {
+        sendActions(for: .touchUpOutside)
+        return
+    }
+//MARK: - Skeleton Methods
+    
+    func updateValue(at touch: UITouch) {
+        for label in stars {
+        let touchPoint = touch.location(in: label)
+        if label.bounds.contains(touchPoint) {
+        value = label.tag
+        }
+    }
+}
     func updateLabels() {
         for i in 1...componentCount {
-            labels[i-1].textColor = i > value ? componentInactiveColor : componentActiveColor
+            stars[i-1].textColor = i > value ? componentInactiveColor : componentActiveColor
         }
     }
 }
